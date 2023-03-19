@@ -3,7 +3,9 @@ package convertGpsToPixels;
 public class ConverGpsToPixels {
 	
 	//range in nautical miles that the screen represent
-    private final double NAUTICAL_MILE = 20.0;
+    private static final double RANGE_NAUTICAL_MILE = 20.0;
+    // Radius of earth, Use 3956 for miles or 6371 for Km
+	private static final double EARTH_RADIUS = 3956;
     
 	public double[] convert(double targetLat, double targetLon, double hosetLat, double hostLon, int width, int height) {
     	/*
@@ -44,11 +46,8 @@ public class ConverGpsToPixels {
             	* Math.pow(Math.sin(dlon / 2),2);
     	double c = 2 * Math.asin(Math.sqrt(a));
 
-    	// Radius of earth, Use 3956 for miles or 6371 for Km
-    	double r = 3956;
-
     	// calculate the result
-    	double distance = c * r;
+    	double distance = c * EARTH_RADIUS;
     	
     //STEP 2 - convert to Minutes to find XY
     //convert coord to string in format - DDD:MM.SSSS
@@ -65,8 +64,8 @@ public class ConverGpsToPixels {
 
     //CONVERT TO SCREEN XY
     //find the percentage of the difference from radar radius(nautical mile)
-    double percentX = lonMileX / NAUTICAL_MILE;
-    double percentY = latMileY / NAUTICAL_MILE;
+    double percentX = lonMileX / RANGE_NAUTICAL_MILE;
+    double percentY = latMileY / RANGE_NAUTICAL_MILE;
 
     double pixelPercX = percentX * radiusDouble;
     double pixelPercy = percentY * radiusDouble;

@@ -1,55 +1,55 @@
 package convertGpsToPixels;
 
 public class ConverGpsToPixels {
+	
+	//range in nautical miles that the screen represent
+    private final double NAUTICAL_MILE = 20.0;
+    
+	public double[] convert(double targetLat, double targetLon, double hosetLat, double hostLon, int width, int height) {
+    	/*
+	    converts GPS coordinates to pixels on screen
+	    to determine the XY method find the difference between the host and the InRange object
+	    and calculate the proper XY coordinates in which the InRange object will be presented on screen
+	    * PARAM:
+	        int width - Width of the parent view/viewgroup/screen.
+	        int height - Height of the parent view/viewgroup/screen.
+	        double targetLat - target's  latitude.
+	        double targetLon - target's longitude.
+	        Location location - Location object from the latest GPS cycle(latitude and longitude of host).
+	   * RETURN: Float list of X and Y pixels points
+	    */
+		
+		//find the center XY of the screen to represent the host
+		int diameter = Math.min(width, height);
+		int center = diameter /2; //radius
+		double radiusDouble = (double) center;
+		
+		//longitude and latitude of target and host
+		double closeObjectY = targetLat;
+		double closetObjectX = targetLon;
+    	double hostX = hostLon;
+    	double hostY = hosetLat;
+    
+    	//STEP 1 - find distance in km or miles
+    	//convert to radians
+    	double lat1 = Math.toRadians(hostY);
+    	double lon1 = Math.toRadians(hostX);
+    	double lat2 = Math.toRadians(closeObjectY);
+    	double lon2 = Math.toRadians(closetObjectX);
+    	//find the Radian Difference with Haversine formula(C)
+    	double dlon = lon2 - lon1;
+    	double dlat = lat2 - lat1;
+    	double a = Math.pow(Math.sin(dlat / 2), 2)
+    			+ Math.cos(lat1) * Math.cos(lat2)
+            	* Math.pow(Math.sin(dlon / 2),2);
+    	double c = 2 * Math.asin(Math.sqrt(a));
 
-public double[] convertToPixels(double targetLat, double targetLon, double hosetLat, double hostLon, int width, int height){
-    /*
-    Utility method to converts GPS coordinates to pixels on screen
-    to determine the XY method find the difference between the host and the InRange object
-    and calculate the proper XY coordinates in which the InRange object will be presented on screen
-    * PARAM:
-        int width - Width of the parent view/viewgroup/screen.
-        int height - Height of the parent view/viewgroup/screen.
-        double targetLat - target's  latitude.
-        double targetLon - target's longitue.
-        Location location - Location object from the latest GPS cycle(latitude and longitude of host).
-   * RETURN: Float list of X and Y pixels points
-    */
+    	// Radius of earth, Use 3956 for miles or 6371 for Km
+    	double r = 3956;
 
-    //range in nautical miles that the screen represent
-    double NAUTICAL_MILE = 20.0;
-
-    //find the center XY of the screen to represent the host
-    int diameter = Math.min(width, height);
-    int center = diameter /2; //radius
-    double radiusDouble = (double) center;
-
-    //longitude and latitude of target and host
-    double closeObjectY = targetLat;
-    double closetObjectX = targetLon;
-    double hostX = hostLon;
-    double hostY = hosetLat;
-
-    //STEP 1 - find distance in km or miles
-    //convert to radians
-    double lat1 = Math.toRadians(hostY);
-    double lon1 = Math.toRadians(hostX);
-    double lat2 = Math.toRadians(closeObjectY);
-    double lon2 = Math.toRadians(closetObjectX);
-    //find the Radian Difference with Haversine formula(C)
-    double dlon = lon2 - lon1;
-    double dlat = lat2 - lat1;
-    double a = Math.pow(Math.sin(dlat / 2), 2)
-            + Math.cos(lat1) * Math.cos(lat2)
-            * Math.pow(Math.sin(dlon / 2),2);
-    double c = 2 * Math.asin(Math.sqrt(a));
-
-    // Radius of earth, Use 3956 for miles or 6371 for Km
-    double r = 3956;
-
-    // calculate the result
-    double distance = c * r;
-
+    	// calculate the result
+    	double distance = c * r;
+    	
     //STEP 2 - convert to Minutes to find XY
     //convert coord to string in format - DDD:MM.SSSS
     //D indicates degrees, M indicates minutes of arc, and S indicates seconds of arc
@@ -78,26 +78,27 @@ public double[] convertToPixels(double targetLat, double targetLon, double hoset
     //THE RETURN
     //return points in list
     return new double[]{pixelX, pixelY, distance};
-}
+    
+	}
 
-private double convertToMapCoord(double[] host, double[] target){
-    double degreeHost = (host[0] * 60) + host[1];
-    double degreeTarget = (target[0] * 60) + target[1];
-    return degreeTarget - degreeHost;
-}
+	private double convertToMapCoord(double[] host, double[] target){
+		double degreeHost = (host[0] * 60) + host[1];
+		double degreeTarget = (target[0] * 60) + target[1];
+		return degreeTarget - degreeHost;
+	}
 
-private double[] convertToDoubleList(String[] coord){
-    double[] result = new double[2];
-    int c = 0;
-    for (String n : coord){
-        result[c] = Double.parseDouble(n);
-        c++;
-    }
-    return result;
-}
+	private double[] convertToDoubleList(String[] coord){
+		double[] result = new double[2];
+    	int c = 0;
+    	for (String n : coord){
+    		result[c] = Double.parseDouble(n);
+    		c++;
+    	}
+    	return result;
+	}
 
-public static String convertLocation(double location, String outputMode) {
-    switch (outputMode) {
+	private static String convertLocation(double location, String outputMode) {
+		switch (outputMode) {
         case "FORMAT_DEGREES":
             return String.format("%s%.6f", location < 0 ? "-" : "", Math.abs(location));
         case "FORMAT_MINUTES":
@@ -120,15 +121,15 @@ public static String convertLocation(double location, String outputMode) {
             return String.format("%s%03d:%06.3f", location < 0 ? "-" : "", degrees, decimalMinutes);
         default:
             throw new IllegalArgumentException("Invalid output mode.");
-    }
-}
+		}
+	}
 
-private static double[] getLookupTable() {
-    double[] table = new double[21600];
-    for (int i = 0; i < table.length; i++) {
-        table[i] = i / 60000.0;
-    }
-    return table;
-}
+	private static double[] getLookupTable() {
+		double[] table = new double[21600];
+		for (int i = 0; i < table.length; i++) {
+			table[i] = i / 60000.0;
+		}
+		return table;
+	}
 
 }

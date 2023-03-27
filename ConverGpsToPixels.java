@@ -1,6 +1,11 @@
 package convertGpsToPixels;
 
 public class ConverGpsToPixels {
+	/*
+    this class converts GPS coordinates to XY pixels on screen.
+    to determine the X and Y, the main method 'convert', finds the distance between the host and a target object
+    and calculate the proper XY coordinates to present them on screen in relations to the 'RANGE_NAUTICAL_MILE' variable (which represents the radius of the screen)
+    */
 	
 	//range in nautical miles that the screen represent
     private static final double RANGE_NAUTICAL_MILE = 20.0;
@@ -9,15 +14,14 @@ public class ConverGpsToPixels {
     
 	public double[] convert(double targetLat, double targetLon, double hosetLat, double hostLon, int width, int height) {
     	/*
-	    converts GPS coordinates to pixels on screen
-	    to determine the XY method find the difference between the host and the InRange object
-	    and calculate the proper XY coordinates in which the InRange object will be presented on screen
+	    the main method for this class.
 	    * PARAM:
-	        int width - Width of the parent view/viewgroup/screen.
-	        int height - Height of the parent view/viewgroup/screen.
-	        double targetLat - target's  latitude.
-	        double targetLon - target's longitude.
-	        Location location - Location object from the latest GPS cycle(latitude and longitude of host).
+	    int width - Width of the parent view/viewgroup/screen.
+        int height - Height of the parent view/viewgroup/screen.
+        double targetLat - target's  latitude.
+        double targetLon - target's longitude.
+        double hosetLat - host's  latitude.
+        double hostLon - host's  longitude.
 	   * RETURN: Float list of X and Y pixels points
 	    */
 		
@@ -49,37 +53,37 @@ public class ConverGpsToPixels {
     	// calculate the result
     	double distance = c * EARTH_RADIUS;
     	
-    //STEP 2 - convert to Minutes to find XY
-    //convert coord to string in format - DDD:MM.SSSS
-    //D indicates degrees, M indicates minutes of arc, and S indicates seconds of arc
-    //(1 minute = 1/60th of a degree, 1 second = 1/3600th of a degree).
-    double[] latMin1 = convertToDoubleList(convertLocation(hostY, "FORMAT_MINUTES").split(":"));
-    double[] latMin2 = convertToDoubleList(convertLocation(closeObjectY, "FORMAT_MINUTES").split(":"));
-    double[] lonMin1 = convertToDoubleList(convertLocation(hostX, "FORMAT_MINUTES").split(":"));
-    double[] lonMin2 = convertToDoubleList(convertLocation(closetObjectX, "FORMAT_MINUTES").split(":"));
+    	//STEP 2 - convert to Minutes to find XY
+    	//convert coord to string in format - DDD:MM.SSSS
+    	//D indicates degrees, M indicates minutes of arc, and S indicates seconds of arc
+    	//(1 minute = 1/60th of a degree, 1 second = 1/3600th of a degree).
+    	double[] latMin1 = convertToDoubleList(convertLocation(hostY, "FORMAT_MINUTES").split(":"));
+    	double[] latMin2 = convertToDoubleList(convertLocation(closeObjectY, "FORMAT_MINUTES").split(":"));
+    	double[] lonMin1 = convertToDoubleList(convertLocation(hostX, "FORMAT_MINUTES").split(":"));
+    	double[] lonMin2 = convertToDoubleList(convertLocation(closetObjectX, "FORMAT_MINUTES").split(":"));
 
-    //find the difference in minutes = nautical mile
-    double latMileY = convertToMapCoord(latMin1, latMin2);
-    double lonMileX = convertToMapCoord(lonMin1, lonMin2);
+    	//find the difference in minutes = nautical mile
+    	double latMileY = convertToMapCoord(latMin1, latMin2);
+    	double lonMileX = convertToMapCoord(lonMin1, lonMin2);
 
-    //CONVERT TO SCREEN XY
-    //find the percentage of the difference from radar radius(nautical mile)
-    double percentX = lonMileX / RANGE_NAUTICAL_MILE;
-    double percentY = latMileY / RANGE_NAUTICAL_MILE;
+    	//CONVERT TO SCREEN XY
+    	//find the percentage of the difference from radar radius(nautical mile)
+    	double percentX = lonMileX / RANGE_NAUTICAL_MILE;
+    	double percentY = latMileY / RANGE_NAUTICAL_MILE;
 
-    double pixelPercX = percentX * radiusDouble;
-    double pixelPercy = percentY * radiusDouble;
+    	double pixelPercX = percentX * radiusDouble;
+    	double pixelPercy = percentY * radiusDouble;
 
-    //find how much is the percent from the radius in pixels
-    double pixelX = radiusDouble + pixelPercX;
-    double pixelY = radiusDouble + (-pixelPercy);
+    	//find how much is the percent from the radius in pixels
+    	double pixelX = radiusDouble + pixelPercX;
+    	double pixelY = radiusDouble + (-pixelPercy);
 
-    //THE RETURN
-    //return points in list
-    return new double[]{pixelX, pixelY, distance};
-    
-	}
-
+    	//THE RETURN
+    	//return array of target X and Y coordinates and distance from host
+    	return new double[]{pixelX, pixelY, distance};
+		}
+	
+	//HELPER METHODS             
 	private double convertToMapCoord(double[] host, double[] target){
 		double degreeHost = (host[0] * 60) + host[1];
 		double degreeTarget = (target[0] * 60) + target[1];
@@ -130,5 +134,4 @@ public class ConverGpsToPixels {
 		}
 		return table;
 	}
-
 }
